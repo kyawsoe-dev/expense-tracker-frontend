@@ -1,26 +1,115 @@
 @import "tailwindcss";
 
+/* Mobile App Theme Palette - Light Mode */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-primary: #7C5CFA;
+  --color-primary-dark: #5630D4;
+  --color-accent: #FF7A45;
+  --color-background: #F6F4FB;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F0EDF8;
+  --color-surface-soft: #E8E4F4;
+  --color-text-primary: #241B3A;
+  --color-text-secondary: #6F6885;
+  --color-text-muted: #A09AB3;
+  --color-success: #1FA56A;
+  --color-success-soft: #E6F7F0;
+  --color-shadow: rgba(124, 92, 250, 0.08);
+  --color-border: #E8E4F4;
+  --color-hero-start: #7C5CFA;
+  --color-hero-end: #5630D4;
+  --color-hero-card-start: #FF7A45;
+  --color-hero-card-end: #FF9A6B;
+  --color-accent-start: #FF7A45;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Dark Mode */
+[data-theme="dark"] {
+  --color-primary: #A991FF;
+  --color-primary-dark: #7C5CFA;
+  --color-accent: #FF7A45;
+  --color-background: #120F1D;
+  --color-surface: #1A1628;
+  --color-surface-muted: #231F35;
+  --color-surface-soft: #2D2845;
+  --color-text-primary: #F5F1FF;
+  --color-text-secondary: #A09AB3;
+  --color-text-muted: #6F6885;
+  --color-success: #1FA56A;
+  --color-success-soft: #0D3B28;
+  --color-shadow: rgba(0, 0, 0, 0.3);
+  --color-border: #2D2845;
+  --color-hero-start: #A991FF;
+  --color-hero-end: #7C5CFA;
+  --color-hero-card-start: #FF7A45;
+  --color-hero-card-end: #FF9A6B;
+  --color-accent-start: #FF7A45;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-accent: var(--color-accent);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-surface-soft: var(--color-surface-soft);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+  --color-shadow: var(--color-shadow);
+  --color-border: var(--color-border);
+  --color-hero-start: var(--color-hero-start);
+  --color-hero-end: var(--color-hero-end);
+  --color-hero-card-start: var(--color-hero-card-start);
+  --color-hero-card-end: var(--color-hero-card-end);
+  --color-accent-start: var(--color-accent-start);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-muted);
+  border-radius: 3px;
+}
+
+/* Gradient utilities */
+.hero-gradient {
+  background: linear-gradient(135deg, var(--color-hero-start), var(--color-hero-end));
+}
+
+.accent-gradient {
+  background: linear-gradient(135deg, var(--color-accent-start), var(--color-accent));
+}
+
+.card-gradient {
+  background: linear-gradient(135deg, var(--color-hero-card-start), var(--color-hero-card-end));
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .glass {
+  background: rgba(26, 22, 40, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
