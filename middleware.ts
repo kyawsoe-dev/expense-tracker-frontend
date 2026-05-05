@@ -4,37 +4,43 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Skip middleware for API routes, static files, and auth pages
+  // Skip middleware for API routes and static files
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/login') ||
+    pathname.startsWith('/_next/static') ||
+    pathname.startsWith('/_next/image') ||
+    pathname === '/favicon.ico' ||
     pathname === '/'
   ) {
     return NextResponse.next();
   }
 
-  // Check if user is authenticated for protected routes
-  const accessToken = request.cookies.get('accessToken')?.value;
-
-  if (!accessToken && pathname !== '/login') {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Check admin routes
   if (pathname.startsWith('/admin')) {
     const adminAuth = request.cookies.get('adminAuthenticated')?.value;
 
     if (pathname === '/admin/login') {
-      if (adminAuth === 'true') {
+      if (adminAuth) {
         return NextResponse.redirect(new URL('/admin/dashboard', request.url));
       }
       return NextResponse.next();
     }
 
-    if (adminAuth !== 'true') {
+    if (!adminAuth) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
+
+    return NextResponse.next();
+  }
+
+  if (pathname === '/login') {
+    return NextResponse.next();
+  }
+
+  const session = request.cookies.get('session-auth')?.value;
+
+  if (!session) {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   return NextResponse.next();

@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/layout/AppShell';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeStore } from '@/store/themeStore';
 import { useGroupStore } from '@/store/groupStore';
 import { useExpenseStore } from '@/store/expenseStore';
+import { ThemeMode } from '@/types';
 import { toast } from 'react-hot-toast';
 
 export default function ProfilePage() {
@@ -18,22 +20,15 @@ export default function ProfilePage() {
   const { expenses: rawExpenses = [] } = useExpenseStore();
   const expenses = rawExpenses || [];
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const destructiveButtonClass =
+    'w-full py-4 rounded-xl font-semibold transition-colors bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600';
+  const destructiveGhostClass =
+    'flex-1 py-3 rounded-xl font-medium bg-surface-muted text-text-primary border border-border hover:bg-border';
 
   const handleLogout = () => {
     logout();
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
     toast.success('Logged out successfully');
     router.push('/login');
-  };
-
-  const getThemeLabel = () => {
-    switch (theme) {
-      case 'light': return 'Light';
-      case 'dark': return 'Dark';
-      case 'system': return 'System';
-    }
   };
 
   return (
@@ -61,14 +56,24 @@ export default function ProfilePage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-surface rounded-2xl p-4 border border-border">
+          <Link
+            href="/history"
+            className="group bg-surface rounded-2xl p-4 border border-border transition-all hover:border-primary/50 hover:-translate-y-0.5"
+          >
             <p className="text-text-muted text-sm">Total Expenses</p>
-            <p className="text-text-primary text-2xl font-bold">{expenses.length}</p>
-          </div>
-          <div className="bg-surface rounded-2xl p-4 border border-border">
+            <p className="text-text-primary text-2xl font-bold group-hover:text-primary">
+              {expenses.length}
+            </p>
+          </Link>
+          <Link
+            href="/groups"
+            className="group bg-surface rounded-2xl p-4 border border-border transition-all hover:border-primary/50 hover:-translate-y-0.5"
+          >
             <p className="text-text-muted text-sm">Groups</p>
-            <p className="text-text-primary text-2xl font-bold">{groups.length}</p>
-          </div>
+            <p className="text-text-primary text-2xl font-bold group-hover:text-primary">
+              {groups.length}
+            </p>
+          </Link>
         </div>
 
         {/* Settings */}
@@ -79,36 +84,27 @@ export default function ProfilePage() {
 
           {/* Theme Selector */}
           <div className="px-6 py-4 border-b border-border">
-            <div className="flex items-center justify-between">
+            <div className="space-y-3">
               <div>
                 <p className="text-text-primary font-medium">Theme</p>
                 <p className="text-text-muted text-sm">Choose your preferred theme</p>
               </div>
-              <select
-                value={theme}
-                onChange={(e) => setTheme(e.target.value as any)}
-                className="px-3 py-2 bg-surface-muted rounded-xl text-text-primary border border-border"
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="system">System</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Admin Access */}
-          <div className="px-6 py-4 border-b border-border">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-text-primary font-medium">Admin Dashboard</p>
-                <p className="text-text-muted text-sm">Manage application settings</p>
+              <div className="grid grid-cols-3 gap-2">
+                {(['light', 'dark', 'system'] as ThemeMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setTheme(mode)}
+                    className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                      theme === mode
+                        ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                        : 'bg-surface-muted text-text-secondary hover:bg-border'
+                    }`}
+                  >
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </button>
+                ))}
               </div>
-              <button
-                onClick={() => router.push('/admin/login')}
-                className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-medium"
-              >
-                Access
-              </button>
             </div>
           </div>
         </div>
@@ -116,7 +112,7 @@ export default function ProfilePage() {
         {/* Logout */}
         <button
           onClick={() => setShowLogoutConfirm(true)}
-          className="w-full py-4 bg-red-50 text-red-500 rounded-xl font-semibold"
+          className={destructiveButtonClass}
         >
           Sign Out
         </button>
@@ -126,17 +122,17 @@ export default function ProfilePage() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-surface rounded-3xl p-6 max-w-sm w-full">
               <h3 className="text-text-primary font-semibold text-lg mb-2">Sign Out?</h3>
-              <p className="text-text-secondary mb-4">You'll need to sign in again to access your data.</p>
+              <p className="text-text-secondary mb-4">You&apos;ll need to sign in again to access your data.</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 py-3 bg-surface-muted rounded-xl font-medium"
+                  className={destructiveGhostClass}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="flex-1 py-3 bg-red-500 text-white rounded-xl font-medium"
+                  className="flex-1 py-3 rounded-xl font-medium bg-red-500 text-white hover:bg-red-600"
                 >
                   Sign Out
                 </button>

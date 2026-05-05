@@ -2,45 +2,55 @@
 
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import AppShell from '@/components/layout/AppShell';
 import { useGroupStore } from '@/store/groupStore';
-import { useExpenseStore } from '@/store/expenseStore';
-import { ExpenseGroup } from '@/types';
+import { useAuthStore } from '@/store/authStore';
 import { toast } from 'react-hot-toast';
 
 export default function GroupDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const resolvedParams = use(params);
   const groupId = resolvedParams.id;
-  const { currentGroup, isLoading, fetchGroup, addMember, removeMember, renameGroup } = useGroupStore();
-  const { expenses: groupExpenses, fetchExpenses } = useExpenseStore();
+  const { currentGroup, isLoading, fetchGroup, addMember, removeMember, renameGroup, fetchMemberSuggestions } = useGroupStore();
+  const userId = useAuthStore((state) => state.user?.id);
   const [showAddMember, setShowAddMember] = useState(false);
   const [memberEmail, setMemberEmail] = useState('');
+  const [memberSuggestions, setMemberSuggestions] = useState<Array<{ id: string; name?: string; email: string }>>([]);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
-    loadData();
-  }, [groupId]);
+    void fetchGroup(groupId);
+  }, [fetchGroup, groupId]);
 
-  const loadData = async () => {
-    await Promise.all([
-      fetchGroup(groupId),
-      fetchExpenses({ limit: 50 }),
-    ]);
-  };
+  useEffect(() => {
+    if (!showAddMember) return;
+
+    const query = memberEmail.trim();
+    if (query.length < 2) {
+      return;
+    }
+
+    const timer = window.setTimeout(async () => {
+      const suggestions = await fetchMemberSuggestions(query);
+      setMemberSuggestions(suggestions);
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [fetchMemberSuggestions, memberEmail, showAddMember]);
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!memberEmail.trim()) return;
+    const email = memberEmail.trim();
+    if (!email) return;
 
     try {
-      await addMember(groupId, memberEmail);
+      await addMember(groupId, email);
       setMemberEmail('');
       setShowAddMember(false);
+      setMemberSuggestions([]);
       toast.success('Member added!');
-    } catch (error) {
+    } catch {
       // Error handled by store
     }
   };
@@ -53,7 +63,20 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
       await renameGroup(groupId, newName);
       setIsEditingName(false);
       toast.success('Group renamed!');
-    } catch (error) {
+    } catch {
+      // Error handled by store
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    if (!window.confirm('Remove this member from the group?')) {
+      return;
+    }
+
+    try {
+      await removeMember(groupId, memberId);
+      toast.success('Member removed!');
+    } catch {
       // Error handled by store
     }
   };
@@ -65,8 +88,6 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
       </AppShell>
     );
   }
-
-  const isOwner = currentGroup.ownerId === currentGroup.id; // This should be compared with user ID
 
   return (
     <AppShell>
@@ -117,6 +138,19 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-surface rounded-3xl p-5 border border-border">
+            <p className="text-text-muted text-sm">Total expense amount</p>
+            <p className="text-text-primary text-3xl font-bold mt-2">
+              MMK{(currentGroup.expenses || []).reduce((sum, expense) => sum + Number(expense.amount || 0), 0).toLocaleString()}
+            </p>
+          </div>
+          <div className="bg-surface rounded-3xl p-5 border border-border">
+            <p className="text-text-muted text-sm">Group members</p>
+            <p className="text-text-primary text-3xl font-bold mt-2">{currentGroup.members.length}</p>
+          </div>
+        </div>
+
         {/* Members */}
         <div className="bg-surface rounded-3xl p-6 border border-border">
           <div className="flex items-center justify-between mb-4">
@@ -142,9 +176,20 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                     <p className="text-text-muted text-xs">{member.email}</p>
                   </div>
                 </div>
-                {member.role === 'owner' && (
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Owner</span>
-                )}
+                <div className="flex items-center gap-2">
+                  {member.role === 'owner' && (
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Owner</span>
+                  )}
+                  {currentGroup.owner?.id === userId && member.id !== userId && (
+                    <button
+                      type="button"
+                      onClick={() => void handleRemoveMember(member.id)}
+                      className="text-xs px-2 py-1 rounded-full bg-red-50 text-red-600"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -156,12 +201,32 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
             <h3 className="text-text-primary font-semibold mb-4">Balances</h3>
             <div className="space-y-3">
               {currentGroup.balances.map((balance) => (
-                <div key={balance.userId} className="flex items-center justify-between p-3 bg-surface-muted rounded-xl">
-                  <p className="text-text-primary text-sm">{balance.name}</p>
-                  <p className={`font-semibold ${balance.balance >= 0 ? 'text-success' : 'text-red-500'}`}>
-                    MMK{Math.abs(balance.balance).toLocaleString()}
-                    {balance.balance >= 0 ? ' (owed)' : ' (owes)'}
-                  </p>
+                <div key={balance.userId} className="rounded-2xl border border-border bg-surface-muted p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-text-primary text-sm font-semibold">{balance.name}</p>
+                      <p className="text-text-muted text-xs">{balance.email}</p>
+                    </div>
+                    <p className={`font-semibold ${balance.balance >= 0 ? 'text-success' : 'text-red-500'}`}>
+                      MMK{Math.abs(balance.balance).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                    <div className="rounded-xl bg-surface p-3 border border-border">
+                      <p className="text-text-muted">Paid</p>
+                      <p className="text-text-primary mt-1 font-semibold">MMK{Number(balance.paid || 0).toLocaleString()}</p>
+                    </div>
+                    <div className="rounded-xl bg-surface p-3 border border-border">
+                      <p className="text-text-muted">Share</p>
+                      <p className="text-text-primary mt-1 font-semibold">MMK{Number(balance.owes || 0).toLocaleString()}</p>
+                    </div>
+                    <div className="rounded-xl bg-surface p-3 border border-border">
+                      <p className="text-text-muted">Net</p>
+                      <p className={`mt-1 font-semibold ${balance.balance >= 0 ? 'text-success' : 'text-red-500'}`}>
+                        {balance.balance >= 0 ? 'OWED' : 'OWES'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -183,10 +248,34 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
                   autoFocus
                   required
                 />
+                {memberSuggestions.length > 0 && (
+                  <div className="max-h-44 overflow-auto rounded-2xl border border-border bg-surface">
+                    {memberSuggestions.map((member) => (
+                      <button
+                        key={member.id}
+                        type="button"
+                        onClick={() => setMemberEmail(member.email)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-surface-muted"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-text-primary">
+                            {member.name || member.email}
+                          </p>
+                          <p className="text-xs text-text-muted">{member.email}</p>
+                        </div>
+                        <span className="text-xs text-primary">Use</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setShowAddMember(false)}
+                    onClick={() => {
+                      setShowAddMember(false);
+                      setMemberEmail('');
+                      setMemberSuggestions([]);
+                    }}
                     className="flex-1 py-3 bg-surface-muted rounded-xl font-medium"
                   >
                     Cancel

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { ThemeMode } from '@/types';
+import { encryptedStorage } from '@/lib/secure-storage';
 
 interface ThemeState {
   theme: ThemeMode;
@@ -25,6 +26,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'theme-storage',
+      storage: createJSONStorage(() => encryptedStorage),
     }
   )
 );
@@ -36,14 +38,5 @@ function applyTheme(theme: ThemeMode) {
     root.setAttribute('data-theme', systemDark ? 'dark' : 'light');
   } else {
     root.setAttribute('data-theme', theme);
-  }
-}
-
-// Initialize theme on load
-if (typeof window !== 'undefined') {
-  const stored = localStorage.getItem('theme-storage');
-  if (stored) {
-    const { state } = JSON.parse(stored);
-    applyTheme(state?.theme || 'system');
   }
 }

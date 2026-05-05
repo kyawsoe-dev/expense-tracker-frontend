@@ -1,5 +1,6 @@
-'use client';
+"use client";
 
+import { useEffect, useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -8,7 +9,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
 } from 'recharts';
 
 interface MonthlyChartProps {
@@ -18,26 +18,51 @@ interface MonthlyChartProps {
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function MonthlyChart({ data }: MonthlyChartProps) {
-  const chartData = (data || []).map((item) => ({
-    ...item,
-    name: MONTH_NAMES[item.month - 1],
-  }));
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsCompact(window.innerWidth < 640);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  const monthMap = new Map((data || []).map((item) => [item.month, item]));
+  const chartData = MONTH_NAMES.map((name, index) => {
+    const item = monthMap.get(index + 1);
+    return {
+      month: index + 1,
+      total: item?.total ?? 0,
+      transactionCount: item?.transactionCount ?? 0,
+      name,
+    };
+  });
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.3} />
+    <ResponsiveContainer width="100%" height={isCompact ? 230 : 280}>
+      <BarChart data={chartData} margin={{ top: 8, right: 8, left: isCompact ? 4 : 0, bottom: isCompact ? 12 : 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.2} vertical={false} />
         <XAxis
           dataKey="name"
-          tick={{ fill: 'var(--color-text-secondary)', fontSize: 12 }}
+          tick={{
+            fill: 'var(--color-text-secondary)',
+            fontSize: isCompact ? 10 : 12,
+          }}
           axisLine={{ stroke: 'var(--color-border)' }}
           tickLine={false}
+          tickMargin={isCompact ? 6 : 10}
+          interval={0}
+          minTickGap={0}
+          angle={isCompact ? -35 : 0}
+          textAnchor={isCompact ? 'end' : 'middle'}
+          height={isCompact ? 40 : undefined}
         />
         <YAxis
-          tick={{ fill: 'var(--color-text-secondary)', fontSize: 12 }}
+          tick={{ fill: 'var(--color-text-secondary)', fontSize: isCompact ? 9 : 12 }}
           axisLine={false}
           tickLine={false}
-          tickFormatter={(value) => `MMK${value / 1000}k`}
+          width={isCompact ? 66 : 56}
+          tickFormatter={(value) => (isCompact ? `MMK${Math.round(value / 1000)}k` : `MMK${Math.round(value / 1000)}k`)}
         />
         <Tooltip
           contentStyle={{
@@ -47,12 +72,12 @@ export default function MonthlyChart({ data }: MonthlyChartProps) {
             color: 'var(--color-text-primary)',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
           }}
-          formatter={(value: any) => [`MMK${Number(value).toLocaleString()}`, 'Amount']}
           cursor={{ fill: 'var(--color-primary)', fillOpacity: 0.1 }}
         />
         <Bar
           dataKey="total"
-          radius={[8, 8, 0, 0]}
+          barSize={isCompact ? 12 : 22}
+          radius={[12, 12, 0, 0]}
           fill="var(--color-primary)"
           fillOpacity={0.8}
         />

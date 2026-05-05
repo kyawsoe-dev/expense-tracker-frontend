@@ -35,7 +35,7 @@ export default function AddExpensePage() {
       await createExpense(formData);
       toast.success('Expense added successfully!');
       router.push('/');
-    } catch (error) {
+    } catch {
       // Error handled by store
     }
   };

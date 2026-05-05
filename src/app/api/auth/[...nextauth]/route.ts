@@ -1,5 +1,7 @@
-import NextAuth from 'next-auth';
+import NextAuth from 'next-auth/next';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
+import GitHubProvider from 'next-auth/providers/github';
 import { authAPI } from '@/lib/api';
 
 const handler = NextAuth({
@@ -27,10 +29,18 @@ const handler = NextAuth({
             };
           }
           return null;
-        } catch (error) {
+        } catch {
           return null;
         }
       },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     }),
   ],
   pages: {
@@ -43,19 +53,30 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.accessToken = user.accessToken;
-        token.refreshToken = user.refreshToken;
-        token.id = user.id;
+        const authUser = user as {
+          id: string;
+          accessToken: string;
+          refreshToken: string;
+        };
+        token.accessToken = authUser.accessToken;
+        token.refreshToken = authUser.refreshToken;
+        token.id = authUser.id;
       }
       return token;
     },
     async session({ session, token }) {
-      session.accessToken = token.accessToken as string;
-      session.refreshToken = token.refreshToken as string;
-      if (session.user) {
-        session.user.id = token.id as string;
+      const nextSession = session as typeof session & {
+        accessToken?: string;
+        refreshToken?: string;
+        user: typeof session.user & { id?: string };
+      };
+
+      nextSession.accessToken = token.accessToken as string;
+      nextSession.refreshToken = token.refreshToken as string;
+      if (nextSession.user) {
+        nextSession.user.id = token.id as string;
       }
-      return session;
+      return nextSession;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,

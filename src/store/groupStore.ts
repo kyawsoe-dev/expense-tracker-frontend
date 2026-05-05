@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { ExpenseGroup, CreateGroupInput, GroupMember } from '@/types';
+import { ExpenseGroup, CreateGroupInput, GroupMemberSuggestion } from '@/types';
 import { groupsAPI } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils';
 
 interface GroupState {
   groups: ExpenseGroup[];
@@ -14,7 +15,7 @@ interface GroupState {
   renameGroup: (id: string, name: string) => Promise<void>;
   addMember: (id: string, email: string) => Promise<void>;
   removeMember: (id: string, memberId: string) => Promise<void>;
-  fetchMemberSuggestions: (query: string) => Promise<any[]>;
+  fetchMemberSuggestions: (query: string) => Promise<GroupMemberSuggestion[]>;
   setCurrentGroup: (group: ExpenseGroup | null) => void;
 }
 
@@ -29,8 +30,8 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     try {
       const { data } = await groupsAPI.list();
       set({ groups: data, isLoading: false });
-    } catch (error: any) {
-      set({ error: error.message, isLoading: false });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error), isLoading: false });
     }
   },
 
@@ -39,8 +40,8 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     try {
       const { data } = await groupsAPI.get(id);
       set({ currentGroup: data, isLoading: false });
-    } catch (error: any) {
-      set({ error: error.message, isLoading: false });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error), isLoading: false });
     }
   },
 
@@ -49,8 +50,8 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       const { data: group } = await groupsAPI.create(data);
       set((state) => ({ groups: [...state.groups, group] }));
       return group;
-    } catch (error: any) {
-      set({ error: error.message });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error) });
       throw error;
     }
   },
@@ -62,8 +63,8 @@ export const useGroupStore = create<GroupState>((set, get) => ({
         groups: state.groups.map((g) => (g.id === id ? data : g)),
         currentGroup: state.currentGroup?.id === id ? data : state.currentGroup,
       }));
-    } catch (error: any) {
-      set({ error: error.message });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error) });
       throw error;
     }
   },
@@ -72,8 +73,8 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     try {
       await groupsAPI.addMember(id, email);
       await get().fetchGroup(id);
-    } catch (error: any) {
-      set({ error: error.message });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error) });
       throw error;
     }
   },
@@ -82,17 +83,18 @@ export const useGroupStore = create<GroupState>((set, get) => ({
     try {
       await groupsAPI.removeMember(id, memberId);
       await get().fetchGroup(id);
-    } catch (error: any) {
-      set({ error: error.message });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error) });
       throw error;
     }
   },
 
   fetchMemberSuggestions: async (query) => {
     try {
-      const { data } = await groupsAPI.memberSuggestions(query);
+      const currentGroupId = get().currentGroup?.id;
+      const { data } = await groupsAPI.memberSuggestions(query, currentGroupId);
       return data;
-    } catch (error: any) {
+    } catch {
       return [];
     }
   },

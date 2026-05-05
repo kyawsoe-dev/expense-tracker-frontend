@@ -1,0 +1,17 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g1" x1="96" y1="80" x2="416" y2="432" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7C5CFA"/>
+      <stop offset="1" stop-color="#5630D4"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="120" y1="120" x2="392" y2="392" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFB08A"/>
+      <stop offset="1" stop-color="#FF7A45"/>
+    </linearGradient>
+  </defs>
+  <rect x="40" y="40" width="432" height="432" rx="108" fill="url(#g1)"/>
+  <circle cx="256" cy="256" r="146" fill="white" fill-opacity="0.10"/>
+  <path d="M162 200C162 183.431 175.431 170 192 170H320C336.569 170 350 183.431 350 200C350 216.569 336.569 230 320 230H284V342C284 358.569 270.569 372 254 372C237.431 372 224 358.569 224 342V230H192C175.431 230 162 216.569 162 200Z" fill="url(#g2)"/>
+  <path d="M206 320C206 306.745 216.745 296 230 296H282C295.255 296 306 306.745 306 320C306 333.255 295.255 344 282 344H230C216.745 344 206 333.255 206 320Z" fill="white" fill-opacity="0.92"/>
+  <text x="256" y="412" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" fill="white" fill-opacity="0.95">ET</text>
+</svg>

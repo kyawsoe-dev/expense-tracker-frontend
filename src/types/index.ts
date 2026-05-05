@@ -34,24 +34,28 @@ export interface CreateExpenseInput {
 export interface ExpenseMonthSummary {
   total: number;
   transactionCount: number;
-  topCategory: string;
+  topCategory: string | null;
   currency: string;
 }
 
 export interface ExpenseYearAnalytics {
-  monthly: { month: number; total: number; transactionCount: number }[];
-  byCategory: { category: string; total: number; percentage: number }[];
+  monthly?: { month: number; total: number; transactionCount: number }[];
+  byMonth?: { month: number; label: string; total: number }[];
+  byCategory: { category: string; total: number; percentage?: number }[];
   year: number;
   currency: string;
+  total?: number;
+  topCategory?: string | null;
 }
 
 export interface ExpenseGroup {
   id: string;
   name: string;
-  ownerId: string;
+  ownerId?: string;
+  owner?: { id: string; name?: string | null; email?: string | null };
   members: GroupMember[];
   expenses?: Expense[];
-  balances?: { userId: string; name: string; balance: number }[];
+  balances?: { userId: string; name: string; email?: string; paid: number; owes: number; balance: number }[];
   createdAt: string;
 }
 
@@ -65,6 +69,13 @@ export interface GroupMember {
 
 export interface CreateGroupInput {
   name: string;
+  memberEmails?: string[];
+}
+
+export interface GroupMemberSuggestion {
+  id: string;
+  name?: string;
+  email: string;
 }
 
 export interface MonthlyParams {
@@ -82,4 +93,62 @@ export interface DashboardData {
   summary: ExpenseMonthSummary;
   recentExpenses: Expense[];
   analytics?: ExpenseYearAnalytics;
+}
+
+export interface PaginatedExpenseResponse {
+  items: Expense[];
+  total: number;
+  take: number;
+  skip: number;
+  hasMore: boolean;
+  nextSkip: number | null;
+}
+
+export type ExpenseDetail = Expense;
+
+export interface AdminOverviewResponse {
+  totals: {
+    users: number;
+    expenses: number;
+    groups: number;
+    members: number;
+  };
+  recentUsers: {
+    id: string;
+    email: string;
+    name?: string | null;
+    createdAt: string;
+    expenseCount: number;
+    ownedGroupCount: number;
+    membershipCount: number;
+  }[];
+  recentExpenses: {
+    id: string;
+    title: string;
+    amount: number;
+    category: string;
+    date: string;
+    createdAt: string;
+    user: {
+      id: string;
+      name?: string | null;
+      email: string;
+    };
+    group: {
+      id: string;
+      name: string;
+    } | null;
+  }[];
+  recentGroups: {
+    id: string;
+    name: string;
+    createdAt: string;
+    owner: {
+      id: string;
+      name?: string | null;
+      email: string;
+    } | null;
+    memberCount: number;
+    expenseCount: number;
+  }[];
 }

@@ -1,5 +1,14 @@
 import api from './axios';
-import { Expense, CreateExpenseInput, ExpenseMonthSummary, ExpenseYearAnalytics, ExpenseGroup, CreateGroupInput, GroupMember } from '@/types';
+import {
+  Expense,
+  CreateExpenseInput,
+  ExpenseMonthSummary,
+  ExpenseYearAnalytics,
+  ExpenseGroup,
+  CreateGroupInput,
+  GroupMemberSuggestion,
+  PaginatedExpenseResponse,
+} from '@/types';
 
 // Auth API
 export const authAPI = {
@@ -21,11 +30,36 @@ export const authAPI = {
 
 // Expenses API
 export const expensesAPI = {
-  list: (params?: { page?: number; limit?: number; search?: string; category?: string; year?: number; month?: number }) =>
-    api.get<{ items: Expense[]; total: number }>('/expenses', { params }),
+  list: (params?: {
+    page?: number;
+    limit?: number;
+    take?: number;
+    skip?: number;
+    search?: string;
+    category?: string;
+    year?: number;
+    month?: number;
+  }) => {
+    const take = params?.take ?? params?.limit ?? 20;
+    const skip = params?.skip ?? Math.max(0, ((params?.page ?? 1) - 1) * take);
+
+    return api.get<PaginatedExpenseResponse>('/expenses', {
+      params: {
+        take,
+        skip,
+        search: params?.search,
+        category: params?.category,
+        year: params?.year,
+        month: params?.month,
+      },
+    });
+  },
 
   create: (data: CreateExpenseInput) =>
     api.post<Expense>('/expenses', data),
+
+  detail: (id: string) =>
+    api.get<Expense>(`/expenses/${id}`),
 
   update: (id: string, data: Partial<CreateExpenseInput>) =>
     api.patch<Expense>(`/expenses/${id}`, data),
@@ -36,14 +70,17 @@ export const expensesAPI = {
   summaryCurrentMonth: () =>
     api.get<ExpenseMonthSummary>('/expenses/summary/current-month'),
 
+  summaryAllTime: () =>
+    api.get<ExpenseMonthSummary>('/expenses/summary/all-time'),
+
   summaryMonthly: (year: number, month: number) =>
     api.get<ExpenseMonthSummary>('/expenses/summary/monthly', { params: { year, month } }),
 
   analyticsYearly: (year: number) =>
     api.get<ExpenseYearAnalytics>('/expenses/analytics/yearly', { params: { year } }),
 
-  byGroup: (groupId: string) =>
-    api.get<Expense[]>(`/expenses/by-group/${groupId}`),
+  byGroup: (groupId: string, params?: { take?: number; skip?: number }) =>
+    api.get<Expense[]>(`/expenses/by-group/${groupId}`, { params }),
 };
 
 // Groups API
@@ -66,6 +103,8 @@ export const groupsAPI = {
   removeMember: (id: string, memberId: string) =>
     api.delete(`/groups/${id}/members/${memberId}`),
 
-  memberSuggestions: (query: string) =>
-    api.get(`/groups/member-suggestions`, { params: { q: query } }),
+  memberSuggestions: (query: string, groupId?: string) =>
+    api.get<GroupMemberSuggestion[]>(`/groups/member-suggestions`, {
+      params: { query, groupId },
+    }),
 };

@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/layout/AppShell';
 import { useExpenseStore } from '@/store/expenseStore';
 import { CATEGORIES } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 
-export default function EditExpensePage({ params }: { params: { id: string } }) {
+export default function EditExpensePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const { expenses, updateExpense, fetchExpenses, isLoading } = useExpenseStore();
+  const { fetchExpense, updateExpense, isLoading } = useExpenseStore();
+  const { id } = use(params);
   const [formData, setFormData] = useState({
     title: '',
     amount: 0,
@@ -21,32 +22,35 @@ export default function EditExpensePage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadExpense();
-  }, [params.id]);
+    const loadExpense = async () => {
+      try {
+        const expense = await fetchExpense(id);
+        setFormData({
+          title: expense.title,
+          amount: expense.amount,
+          category: expense.category,
+          date: expense.date.split('T')[0],
+          note: expense.note || '',
+          groupId: expense.groupId || '',
+        });
+      } catch {
+        toast.error('Could not load expense');
+        router.push('/history');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const loadExpense = async () => {
-    await fetchExpenses();
-    const expense = expenses.find((e) => e.id === params.id);
-    if (expense) {
-      setFormData({
-        title: expense.title,
-        amount: expense.amount,
-        category: expense.category,
-        date: expense.date.split('T')[0],
-        note: expense.note || '',
-        groupId: expense.groupId || '',
-      });
-    }
-    setLoading(false);
-  };
+    void loadExpense();
+  }, [fetchExpense, id, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateExpense(params.id, formData);
+      await updateExpense(id, formData);
       toast.success('Expense updated!');
       router.push('/history');
-    } catch (error) {
+    } catch {
       // Error handled by store
     }
   };

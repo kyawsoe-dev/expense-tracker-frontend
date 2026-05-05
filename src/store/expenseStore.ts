@@ -6,11 +6,13 @@ import {
   ExpenseYearAnalytics,
 } from "@/types";
 import { expensesAPI } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 
 interface ExpenseState {
   expenses: Expense[];
   recentExpenses: Expense[];
   currentSummary: ExpenseMonthSummary | null;
+  allTimeSummary: ExpenseMonthSummary | null;
   currentAnalytics: ExpenseYearAnalytics | null;
   totalExpenses: number;
   isLoading: boolean;
@@ -19,6 +21,18 @@ interface ExpenseState {
   fetchExpenses: (params?: {
     page?: number;
     limit?: number;
+    take?: number;
+    skip?: number;
+    search?: string;
+    category?: string;
+    year?: number;
+    month?: number;
+  }) => Promise<void>;
+  fetchMoreExpenses: (params?: {
+    page?: number;
+    limit?: number;
+    take?: number;
+    skip?: number;
     search?: string;
     category?: string;
     year?: number;
@@ -26,7 +40,9 @@ interface ExpenseState {
   }) => Promise<void>;
   fetchRecentExpenses: () => Promise<void>;
   fetchSummary: (year?: number, month?: number) => Promise<void>;
+  fetchAllTimeSummary: () => Promise<void>;
   fetchAnalytics: (year: number) => Promise<void>;
+  fetchExpense: (id: string) => Promise<Expense>;
   createExpense: (data: CreateExpenseInput) => Promise<Expense>;
   updateExpense: (
     id: string,
@@ -35,10 +51,11 @@ interface ExpenseState {
   deleteExpense: (id: string) => Promise<void>;
 }
 
-export const useExpenseStore = create<ExpenseState>((set, get) => ({
+export const useExpenseStore = create<ExpenseState>((set) => ({
   expenses: [],
   recentExpenses: [],
   currentSummary: null,
+  allTimeSummary: null,
   currentAnalytics: null,
   totalExpenses: 0,
   isLoading: false,
@@ -53,8 +70,21 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
         totalExpenses: data.total,
         isLoading: false,
       });
-    } catch (error: any) {
-      set({ error: error.message, isLoading: false });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error), isLoading: false });
+    }
+  },
+
+  fetchMoreExpenses: async (params) => {
+    try {
+      const { data } = await expensesAPI.list(params);
+      set((state) => ({
+        expenses: [...state.expenses, ...data.items],
+        totalExpenses: data.total,
+      }));
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error) });
+      throw error;
     }
   },
 
@@ -62,7 +92,7 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
     try {
       const { data } = await expensesAPI.list({ limit: 5 });
       set({ recentExpenses: data.items || [] });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to fetch recent expenses:", error);
       set({ recentExpenses: [] });
     }
@@ -75,18 +105,41 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
           ? await expensesAPI.summaryMonthly(year, month)
           : await expensesAPI.summaryCurrentMonth();
       set({ currentSummary: data });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to fetch summary:", error);
+    }
+  },
+
+  fetchAllTimeSummary: async () => {
+    try {
+      const { data } = await expensesAPI.summaryAllTime();
+      set({ allTimeSummary: data });
+    } catch (error: unknown) {
+      console.error("Failed to fetch all-time summary:", error);
     }
   },
 
   fetchAnalytics: async (year) => {
     try {
       const { data } = await expensesAPI.analyticsYearly(year);
-      set({ currentAnalytics: data });
-    } catch (error: any) {
+      set({
+        currentAnalytics: {
+          ...data,
+          monthly: (data.byMonth ?? []).map((item) => ({
+            month: item.month,
+            total: item.total,
+            transactionCount: 0,
+          })),
+        },
+      });
+    } catch (error: unknown) {
       console.error("Failed to fetch analytics:", error);
     }
+  },
+
+  fetchExpense: async (id) => {
+    const { data } = await expensesAPI.detail(id);
+    return data;
   },
 
   createExpense: async (data) => {
@@ -98,8 +151,8 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
         isLoading: false,
       }));
       return expense;
-    } catch (error: any) {
-      set({ error: error.message, isLoading: false });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },
@@ -110,8 +163,8 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       set((state) => ({
         expenses: state.expenses.map((e) => (e.id === id ? updated : e)),
       }));
-    } catch (error: any) {
-      set({ error: error.message });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error) });
       throw error;
     }
   },
@@ -123,8 +176,8 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
         expenses: state.expenses.filter((e) => e.id !== id),
         recentExpenses: state.recentExpenses.filter((e) => e.id !== id),
       }));
-    } catch (error: any) {
-      set({ error: error.message });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error) });
       throw error;
     }
   },

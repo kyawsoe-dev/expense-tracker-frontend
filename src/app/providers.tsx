@@ -1,35 +1,16 @@
 'use client';
 
 import { SessionProvider } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useThemeStore } from '@/store/themeStore';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const { theme, setTheme } = useThemeStore();
-  const [mounted, setMounted] = useState(false);
+  const theme = useThemeStore((state) => state.theme);
 
   useEffect(() => {
-    setMounted(true);
-    // Apply stored theme on mount
-    const stored = localStorage.getItem('theme-storage');
-    if (stored) {
-      const { state } = JSON.parse(stored);
-      if (state?.theme) {
-        applyTheme(state.theme);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      applyTheme(theme);
-    }
-  }, [theme, mounted]);
-
-  if (!mounted) {
-    return <>{children}</>;
-  }
+    applyTheme(theme);
+  }, [theme]);
 
   return (
     <SessionProvider>

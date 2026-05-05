@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { useAuthStore } from '@/store/authStore';
+import { encryptedStorage } from '@/lib/secure-storage';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1',
@@ -9,13 +11,52 @@ const api = axios.create({
   timeout: 10000, // 10 second timeout
 });
 
+let refreshTokenPromise: Promise<{ accessToken: string; refreshToken: string }> | null = null;
+
+function restoreAuthStateFromStorage() {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const raw = encryptedStorage.getItem('auth-storage');
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as {
+      state?: {
+        accessToken?: string | null;
+        refreshToken?: string | null;
+        isAuthenticated?: boolean;
+        user?: unknown;
+      };
+    };
+
+    const state = parsed.state;
+    if (!state?.accessToken || !state.refreshToken) {
+      return null;
+    }
+
+    useAuthStore.setState((current) => ({
+      ...current,
+      accessToken: state.accessToken ?? null,
+      refreshToken: state.refreshToken ?? null,
+      isAuthenticated: Boolean(state.isAuthenticated),
+    }));
+
+    return {
+      accessToken: state.accessToken,
+      refreshToken: state.refreshToken,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // Request interceptor to add token
 api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  const storedState = useAuthStore.getState();
+  const restored = storedState.accessToken ? null : restoreAuthStateFromStorage();
+  const token = storedState.accessToken ?? restored?.accessToken ?? null;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -33,28 +74,46 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      const requestUrl = String(originalRequest.url ?? '');
+      if (requestUrl.includes('/auth/refresh') || requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register')) {
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken =
+          useAuthStore.getState().refreshToken ?? restoreAuthStateFromStorage()?.refreshToken;
         if (!refreshToken) {
           throw new Error('No refresh token');
         }
 
-        const { data } = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/refresh`,
-          { refreshToken }
-        );
+        if (!refreshTokenPromise) {
+          refreshTokenPromise = axios
+            .post(
+              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/auth/refresh`,
+              { refreshToken },
+            )
+            .then(({ data }) => data)
+            .finally(() => {
+              refreshTokenPromise = null;
+            });
+        }
 
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
+        const data = await refreshTokenPromise;
 
+        useAuthStore.setState((state) => ({
+          ...state,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          isAuthenticated: true,
+        }));
+
+        originalRequest.headers = originalRequest.headers ?? {};
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
+        useAuthStore.getState().logout();
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }

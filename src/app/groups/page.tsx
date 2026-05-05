@@ -4,28 +4,68 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AppShell from '@/components/layout/AppShell';
 import { useGroupStore } from '@/store/groupStore';
-import { ExpenseGroup } from '@/types';
+import { ExpenseGroup, GroupMemberSuggestion } from '@/types';
 import { toast } from 'react-hot-toast';
 
 export default function GroupsPage() {
-  const { groups, isLoading, fetchGroups, createGroup } = useGroupStore();
+  const { groups, isLoading, fetchGroups, createGroup, fetchMemberSuggestions } = useGroupStore();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [groupName, setGroupName] = useState('');
+  const [memberEmail, setMemberEmail] = useState('');
+  const [memberSuggestions, setMemberSuggestions] = useState<GroupMemberSuggestion[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<GroupMemberSuggestion[]>([]);
 
   useEffect(() => {
-    fetchGroups();
-  }, []);
+    void fetchGroups();
+  }, [fetchGroups]);
+
+  useEffect(() => {
+    if (!showCreateModal) return;
+
+    const query = memberEmail.trim();
+    if (query.length < 2) {
+      return;
+    }
+
+    const timer = window.setTimeout(async () => {
+      const suggestions = await fetchMemberSuggestions(query);
+      const selectedEmails = new Set(selectedMembers.map((member) => member.email.toLowerCase()));
+      setMemberSuggestions(
+        suggestions.filter((member) => !selectedEmails.has(member.email.toLowerCase())),
+      );
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [fetchMemberSuggestions, memberEmail, selectedMembers, showCreateModal]);
+
+  const addSuggestedMember = (member: GroupMemberSuggestion) => {
+    if (selectedMembers.some((item) => item.email.toLowerCase() === member.email.toLowerCase())) {
+      return;
+    }
+    setSelectedMembers((members) => [...members, member]);
+    setMemberEmail('');
+    setMemberSuggestions([]);
+  };
+
+  const removeSelectedMember = (email: string) => {
+    setSelectedMembers((members) => members.filter((member) => member.email.toLowerCase() !== email.toLowerCase()));
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!groupName.trim()) return;
 
     try {
-      await createGroup({ name: groupName });
+      await createGroup({
+        name: groupName,
+        memberEmails: selectedMembers.map((member) => member.email),
+      });
       setGroupName('');
+      setMemberEmail('');
+      setSelectedMembers([]);
       setShowCreateModal(false);
       toast.success('Group created!');
-    } catch (error) {
+    } catch {
       // Error handled by store
     }
   };
@@ -35,6 +75,15 @@ export default function GroupsPage() {
     if (memberCount === 2) return { label: 'Couple', color: 'bg-pink-100 text-pink-700' };
     if (memberCount <= 5) return { label: 'Friends', color: 'bg-blue-100 text-blue-700' };
     return { label: 'Team', color: 'bg-green-100 text-green-700' };
+  };
+
+  const formatCreatedAt = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   return (
@@ -86,6 +135,9 @@ export default function GroupsPage() {
                             {group.members.length} members
                           </span>
                         </div>
+                        <p className="mt-1 text-xs text-text-muted">
+                          Created {formatCreatedAt(group.createdAt)}
+                        </p>
                       </div>
                     </div>
                     <svg className="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,10 +165,57 @@ export default function GroupsPage() {
                   autoFocus
                   required
                 />
+                <div className="space-y-3">
+                  <label className="text-text-secondary text-sm font-medium">Invite members</label>
+                  <input
+                    type="email"
+                    value={memberEmail}
+                    onChange={(e) => setMemberEmail(e.target.value)}
+                    className="w-full px-4 py-3 bg-surface-muted rounded-xl text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="Search by email"
+                  />
+                  {memberSuggestions.length > 0 && (
+                    <div className="max-h-44 overflow-auto rounded-2xl border border-border bg-surface">
+                      {memberSuggestions.map((member) => (
+                        <button
+                          key={member.id}
+                          type="button"
+                          onClick={() => addSuggestedMember(member)}
+                          className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-surface-muted"
+                        >
+                          <div>
+                            <p className="text-sm font-medium text-text-primary">{member.name || member.email}</p>
+                            <p className="text-xs text-text-muted">{member.email}</p>
+                          </div>
+                          <span className="text-xs text-primary">Add</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {selectedMembers.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMembers.map((member) => (
+                        <button
+                          key={member.email}
+                          type="button"
+                          onClick={() => removeSelectedMember(member.email)}
+                          className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                        >
+                          {member.email} ×
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setShowCreateModal(false)}
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      setMemberEmail('');
+                      setMemberSuggestions([]);
+                      setSelectedMembers([]);
+                    }}
                     className="flex-1 py-3 bg-surface-muted rounded-xl font-medium"
                   >
                     Cancel

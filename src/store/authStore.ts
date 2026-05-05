@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { User, AuthResponse } from '@/types';
+import { encryptedStorage, removeCookie, setEncryptedCookie } from '@/lib/secure-storage';
 
 interface AuthState {
   user: User | null;
@@ -10,6 +11,7 @@ interface AuthState {
   setAuth: (data: AuthResponse) => void;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
+  rehydrateFromStorage: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -37,9 +39,41 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...userData } : null,
         })),
+      rehydrateFromStorage: () => {
+        if (typeof window === 'undefined') return;
+
+        try {
+          const raw = encryptedStorage.getItem('auth-storage');
+          if (!raw) return;
+
+          const parsed = JSON.parse(raw) as {
+            state?: {
+              user?: User | null;
+              accessToken?: string | null;
+              refreshToken?: string | null;
+              isAuthenticated?: boolean;
+            };
+          };
+
+          const state = parsed.state;
+          if (!state?.accessToken || !state.refreshToken || !state.user) {
+            return;
+          }
+
+          set({
+            user: state.user,
+            accessToken: state.accessToken,
+            refreshToken: state.refreshToken,
+            isAuthenticated: Boolean(state.isAuthenticated),
+          });
+        } catch {
+          // Ignore storage parse errors and fall back to logout state.
+        }
+      },
     }),
     {
       name: 'auth-storage',
+      storage: createJSONStorage(() => encryptedStorage),
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
@@ -49,3 +83,18 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+if (typeof window !== 'undefined') {
+  useAuthStore.getState().rehydrateFromStorage();
+}
+
+useAuthStore.subscribe((state) => {
+  if (typeof window === 'undefined') return;
+
+  if (state.isAuthenticated && state.accessToken && state.refreshToken && state.user) {
+    setEncryptedCookie('session-auth', JSON.stringify({ userId: state.user.id, issuedAt: Date.now() }));
+    return;
+  }
+
+  removeCookie('session-auth');
+});
