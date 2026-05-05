@@ -1,6 +1,6 @@
 # Expense Tracker - Next.js Frontend
 
-A modern frontend for the Expense Tracker application built with Next.js 16, featuring full UI parity with the mobile app, admin dashboard with 2FA, and integration with the existing backend API.
+A modern frontend for the Expense Tracker application built with Next.js 16.
 
 ## Tech Stack
 
@@ -18,7 +18,6 @@ A modern frontend for the Expense Tracker application built with Next.js 16, fea
 
 ### User Features (matches mobile app)
 - Login/Register with email & password
-- Social login (Google, GitHub) via Firebase
 - Dashboard with monthly overview and analytics
 - Expense management (CRUD operations)
 - Category-based expense tracking
@@ -27,11 +26,6 @@ A modern frontend for the Expense Tracker application built with Next.js 16, fea
 - Profile management
 - Dark/Light/System theme support
 
-### Admin Features
-- Separate admin login route (`/admin/login`)
-- Two-Factor Authentication using Speakeasy (TOTP)
-- Admin dashboard with system stats
-- 2FA setup with QR code (compatible with Google Authenticator, Authy, etc.)
 
 ## Getting Started
 
