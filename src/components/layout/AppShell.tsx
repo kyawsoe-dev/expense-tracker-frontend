@@ -51,8 +51,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       {/* Top App Bar */}
-      <header className="sticky top-0 z-50 bg-surface border-b border-border px-4 py-3">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+      <header className="sticky top-0 z-50 bg-surface border-b border-border px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-[1920px] items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 hero-gradient rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">ET</span>
@@ -124,58 +124,74 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Main Content */}
-      <main className="pb-36 px-4 py-6 max-w-7xl mx-auto">{children}</main>
+      <main className="mx-auto w-full max-w-[1920px] px-4 py-6 pb-36 sm:px-6 lg:px-10">
+        {children}
+      </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2">
+      <nav className="fixed bottom-0 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 lg:w-[calc(100%-3rem)] lg:max-w-4xl xl:max-w-5xl">
         <div className="rounded-[28px] border border-border bg-surface px-4 py-3 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur">
           <div className="grid grid-cols-5 items-end gap-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.path;
-            const isCenter = item.isCenter;
+            {navItems.map((item) => {
+              const isActive = pathname === item.path;
+              const isCenter = item.isCenter;
 
-            return (
-              <Link
-                key={item.path}
-                href={item.path}
-                className={`flex flex-col items-center justify-center rounded-2xl transition-all ${
-                  isCenter
-                    ? "relative -mt-6 h-14 w-14 justify-self-center rounded-full bg-primary text-white shadow-lg shadow-primary/30"
-                    : isActive
-                      ? "text-primary"
-                      : "text-text-muted hover:text-text-secondary"
-                }`}
+              return (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  className={`flex flex-col items-center justify-center rounded-2xl transition-all ${
+                    isCenter
+                      ? "relative -mt-6 h-14 w-14 justify-self-center rounded-full bg-primary text-white shadow-lg shadow-primary/30"
+                      : isActive
+                        ? "text-primary"
+                        : "text-text-muted hover:text-text-secondary"
+                  }`}
                 >
-                {item.path === "/profile" ? (
-                  <div className={`flex flex-col items-center gap-1 ${isActive ? "text-primary" : "text-text-muted"}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border ${isActive ? "bg-primary text-white border-transparent shadow-lg shadow-primary/25" : "bg-surface-muted text-text-primary border-border"}`}>
-                      {userInitial}
-                    </div>
-                    <span className="text-xs font-medium">{item.label}</span>
-                  </div>
-                ) : (
-                  <div className={`flex flex-col items-center gap-1 ${isCenter ? "pt-0" : ""}`}>
-                    <svg
-                      className={`h-6 w-6 ${isCenter ? "h-7 w-7" : ""}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  {item.path === "/profile" ? (
+                    <div
+                      className={`flex flex-col items-center gap-1 ${
+                        isActive ? "text-primary" : "text-text-muted"
+                      }`}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={isCenter ? 2.5 : 2}
-                        d={item.icon}
-                      />
-                    </svg>
-                    {!isCenter && (
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-bold ${
+                          isActive
+                            ? "border-transparent bg-primary text-white shadow-lg shadow-primary/25"
+                            : "border-border bg-surface-muted text-text-primary"
+                        }`}
+                      >
+                        {userInitial}
+                      </div>
                       <span className="text-xs font-medium">{item.label}</span>
-                    )}
-                  </div>
-                )}
-              </Link>
-            );
-          })}
+                    </div>
+                  ) : (
+                    <div
+                      className={`flex flex-col items-center gap-1 ${
+                        isCenter ? "pt-0" : ""
+                      }`}
+                    >
+                      <svg
+                        className={`h-6 w-6 ${isCenter ? "h-7 w-7" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={isCenter ? 2.5 : 2}
+                          d={item.icon}
+                        />
+                      </svg>
+                      {!isCenter && (
+                        <span className="text-xs font-medium">{item.label}</span>
+                      )}
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </div>
       </nav>
