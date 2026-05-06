@@ -47,7 +47,12 @@ export default function EditExpensePage({ params }: { params: Promise<{ id: stri
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateExpense(id, formData);
+      const payload = {
+        ...formData,
+        ...(formData.groupId ? { groupId: formData.groupId } : {}),
+      };
+
+      await updateExpense(id, payload);
       toast.success('Expense updated!');
       router.push('/history');
     } catch {
