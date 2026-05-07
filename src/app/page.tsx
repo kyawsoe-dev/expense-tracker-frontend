@@ -9,12 +9,21 @@ import { useAuthStore } from '@/store/authStore';
 export default function HomePage() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (hasHydrated && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [hasHydrated, isAuthenticated, router]);
+
+  if (!hasHydrated) {
+    return (
+      <AppShell>
+        <div className="text-center py-8 text-text-muted">Loading...</div>
+      </AppShell>
+    );
+  }
 
   if (!isAuthenticated) {
     return null;

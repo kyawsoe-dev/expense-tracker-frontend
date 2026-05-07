@@ -199,9 +199,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-sm rounded-3xl bg-surface p-6 shadow-2xl border border-border">
-            <h3 className="mb-2 text-lg font-semibold text-text-primary">
-              Sign Out?
-            </h3>
+            <div className="mb-2 flex items-start justify-between gap-4">
+              <h3 className="text-lg font-semibold text-text-primary">
+                Sign Out?
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="rounded-xl p-2 text-text-muted hover:bg-surface-muted hover:text-text-primary"
+                aria-label="Close dialog"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
+            </div>
             <p className="mb-5 text-sm text-text-secondary">
               You&apos;ll need to sign in again to access your data.
             </p>

@@ -10,6 +10,9 @@ interface CategoryData {
 
 const COLORS = ['#7C5CFA', '#FF7A45', '#1FA56A', '#FFD700', '#5630D4', '#FF6B6B', '#4ECDC4', '#45B7D1'];
 
+const formatAmount = (amount: number | string) =>
+  `MMK ${Number(amount).toLocaleString("en-US")}`;
+
 export default function CategoryPieChart({ data }: { data: CategoryData[] }) {
   const sortedData = [...(data || [])].sort((a, b) => b.total - a.total).slice(0, 8);
 
@@ -68,14 +71,14 @@ export default function CategoryPieChart({ data }: { data: CategoryData[] }) {
                   {item.category}
                 </span>
               </div>
-              <div className="text-right tabular-nums">
-                <p className="text-text-primary text-sm font-medium whitespace-nowrap">
-                  MMK{item.total.toLocaleString()}
-                </p>
-                <p className="text-text-muted text-xs whitespace-nowrap">
-                  {percentage.toFixed(1)}%
-                </p>
-              </div>
+                <div className="text-right tabular-nums">
+                  <p className="text-text-primary text-sm font-medium whitespace-nowrap">
+                    {formatAmount(item.total)}
+                  </p>
+                  <p className="text-text-muted text-xs whitespace-nowrap">
+                    {percentage.toFixed(1)}%
+                  </p>
+                </div>
             </div>
           );
         })}

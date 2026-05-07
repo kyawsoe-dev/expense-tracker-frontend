@@ -63,6 +63,9 @@ export default function HistoryPage() {
   const selectedCategoryLabel =
     selectedCategory === "All" ? "All categories" : selectedCategory;
 
+  const formatAmount = (amount: number | string) =>
+    `MMK ${Number(amount).toLocaleString("en-US")}`;
+
   useEffect(() => {
     const timer = window.setTimeout(async () => {
       const params = {
@@ -92,7 +95,7 @@ export default function HistoryPage() {
     const node = loadMoreRef.current;
     if (!node) return;
 
-    const observer = new IntersectionObserver(
+    const observer = new IntersectionObserver(  
       (entries) => {
         const [entry] = entries;
         const hasMore = totalExpenses > expenses.length;
@@ -170,7 +173,7 @@ export default function HistoryPage() {
                 {selectedCategoryLabel}
               </div>
               <p className="mt-4 text-3xl font-bold">
-                MMK{historyTotal.toLocaleString()}
+                {formatAmount(historyTotal)}
               </p>
               <p className="mt-2 text-sm text-white/75">
                 {expenses.length} transactions selected
@@ -414,7 +417,7 @@ export default function HistoryPage() {
                           : "Personal expense"}
                       </div>
                       <p className="text-base font-bold text-success">
-                        MMK{expense.amount.toLocaleString()}
+                        {formatAmount(expense.amount)}
                       </p>
                     </div>
                   </div>
@@ -438,9 +441,21 @@ export default function HistoryPage() {
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="w-full max-w-sm rounded-3xl bg-surface p-6 shadow-2xl">
-              <h3 className="mb-2 text-lg font-semibold text-text-primary">
-                Delete Expense?
-              </h3>
+              <div className="mb-2 flex items-start justify-between gap-4">
+                <h3 className="text-lg font-semibold text-text-primary">
+                  Delete Expense?
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(null)}
+                  className="rounded-xl p-2 text-text-muted hover:bg-surface-muted hover:text-text-primary"
+                  aria-label="Close dialog"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </button>
+              </div>
               <p className="mb-5 text-sm text-text-secondary">
                 This action cannot be undone.
               </p>

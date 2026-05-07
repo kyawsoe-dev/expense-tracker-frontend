@@ -154,7 +154,24 @@ export default function GroupsPage() {
         {showCreateModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-surface rounded-3xl p-6 w-full max-w-sm">
-              <h3 className="text-text-primary font-semibold text-lg mb-4">Create New Group</h3>
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <h3 className="text-text-primary font-semibold text-lg">Create New Group</h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setMemberEmail('');
+                    setMemberSuggestions([]);
+                    setSelectedMembers([]);
+                  }}
+                  className="rounded-xl p-2 text-text-muted hover:bg-surface-muted hover:text-text-primary"
+                  aria-label="Close dialog"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </button>
+              </div>
               <form onSubmit={handleCreate} className="space-y-4">
                 <input
                   type="text"

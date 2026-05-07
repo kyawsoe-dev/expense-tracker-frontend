@@ -83,6 +83,16 @@ export default function DashboardContent() {
     year: "numeric",
   }).format(today);
 
+  const formatAmount = (amount: number | string) =>
+    `MMK ${Number(amount).toLocaleString("en-US")}`;
+
+  const formatCreatedAt = (value: string) =>
+    new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(new Date(value));
+
   const selectedOverviewLabel = new Intl.DateTimeFormat("en-US", {
     month: "long",
     year: "numeric",
@@ -196,7 +206,7 @@ export default function DashboardContent() {
 
             <div className="mt-4">
               <p className="text-3xl font-bold">
-                MMK{safeCurrentSummary.total.toLocaleString()}
+                {formatAmount(safeCurrentSummary.total)}
               </p>
               <p className="text-white/70 text-sm mt-1">
                 Your {selectedOverviewLabel} total across all tracked expenses.
@@ -265,7 +275,7 @@ export default function DashboardContent() {
             <div className="rounded-2xl bg-surface-muted p-4">
               <p className="text-text-muted text-xs">Year total</p>
               <p className="mt-2 text-xl font-bold text-text-primary">
-                MMK{Number(safeCurrentAnalytics?.total ?? safeCurrentSummary?.total ?? 0).toLocaleString()}
+                {formatAmount(Number(safeCurrentAnalytics?.total ?? safeCurrentSummary?.total ?? 0))}
               </p>
             </div>
             <div className="rounded-2xl bg-surface-muted p-4">
@@ -294,6 +304,9 @@ export default function DashboardContent() {
               AI Spending Forecast
             </h3>
             <span className="text-text-muted text-xs">Next Month</span>
+            <p className="mt-1 text-text-muted text-xs">
+              Created {formatCreatedAt(today.toISOString())}
+            </p>
           </div>
           <button
             type="button"
@@ -323,7 +336,7 @@ export default function DashboardContent() {
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
                   <p className="text-text-primary font-bold text-lg">
-                    MMK{totalPredicted.toLocaleString()}
+                    {formatAmount(totalPredicted)}
                   </p>
                   <p className="text-text-muted text-xs mt-1">Total Est.</p>
                 </div>
@@ -374,7 +387,7 @@ export default function DashboardContent() {
                       </p>
                     </div>
                     <p className="text-text-primary font-bold whitespace-nowrap">
-                      MMK{prediction.predictedAmount.toLocaleString()}
+                      {formatAmount(prediction.predictedAmount)}
                     </p>
                   </div>
                 );
@@ -438,16 +451,12 @@ export default function DashboardContent() {
                       {expense.title}
                     </p>
                     <p className="text-text-muted text-xs">
-                      {expense.category} •{" "}
-                      {new Date(expense.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
+                      {expense.category} • Created {formatCreatedAt(expense.createdAt)}
                     </p>
                   </div>
                 </div>
                 <p className="text-text-primary font-semibold">
-                  MMK{expense.amount.toLocaleString()}
+                  {formatAmount(expense.amount)}
                 </p>
               </div>
             ))
@@ -487,6 +496,9 @@ export default function DashboardContent() {
                     </p>
                     <p className="text-text-muted text-xs">
                       {group.members.length} members
+                    </p>
+                    <p className="text-text-muted text-xs mt-1">
+                      Created {formatCreatedAt(group.createdAt)}
                     </p>
                   </div>
                 </div>

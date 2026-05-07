@@ -8,6 +8,7 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  hasHydrated: boolean;
   setAuth: (data: AuthResponse) => void;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
@@ -21,6 +22,7 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
+      hasHydrated: false,
       setAuth: (data: AuthResponse) =>
         set({
           user: data.user,
@@ -44,7 +46,10 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const raw = encryptedStorage.getItem('auth-storage');
-          if (!raw) return;
+          if (!raw) {
+            set({ hasHydrated: true });
+            return;
+          }
 
           const parsed = JSON.parse(raw) as {
             state?: {
@@ -57,6 +62,7 @@ export const useAuthStore = create<AuthState>()(
 
           const state = parsed.state;
           if (!state?.accessToken || !state.refreshToken || !state.user) {
+            set({ hasHydrated: true });
             return;
           }
 
@@ -65,9 +71,11 @@ export const useAuthStore = create<AuthState>()(
             accessToken: state.accessToken,
             refreshToken: state.refreshToken,
             isAuthenticated: Boolean(state.isAuthenticated),
+            hasHydrated: true,
           });
         } catch {
           // Ignore storage parse errors and fall back to logout state.
+          set({ hasHydrated: true });
         }
       },
     }),

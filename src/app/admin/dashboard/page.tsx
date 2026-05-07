@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { generateAdminSecret, verifyAdminToken } from "@/lib/admin-2fa";
 import { adminAPI } from "@/lib/admin-api";
-import { encryptedStorage, removeCookie, setEncryptedCookie } from "@/lib/secure-storage";
+import {
+  encryptedStorage,
+  removeCookie,
+  setEncryptedCookie,
+} from "@/lib/secure-storage";
 import type { AdminOverviewResponse } from "@/types";
 import { toast } from "react-hot-toast";
 
@@ -21,7 +25,8 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState("");
 
   const handleSetup2FA = () => {
-    const adminEmail = localStorage.getItem("adminEmail") || "admin@example.com";
+    const adminEmail =
+      localStorage.getItem("adminEmail") || "admin@example.com";
     const data = generateAdminSecret(adminEmail);
     setSecret(data.secret);
     setOtpauthUrl(data.otpauthUrl);
@@ -106,12 +111,24 @@ export default function AdminDashboardPage() {
       year: "numeric",
     });
 
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-red-500 text-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-8 w-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -151,19 +168,27 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           <div className="rounded-2xl border border-border bg-surface p-6">
             <p className="text-sm text-text-muted">Total Users</p>
-            <p className="mt-2 text-3xl font-bold text-text-primary">{stats.users}</p>
+            <p className="mt-2 text-3xl font-bold text-text-primary">
+              {stats.users}
+            </p>
           </div>
           <div className="rounded-2xl border border-border bg-surface p-6">
             <p className="text-sm text-text-muted">Total Expenses</p>
-            <p className="mt-2 text-3xl font-bold text-text-primary">{stats.expenses}</p>
+            <p className="mt-2 text-3xl font-bold text-text-primary">
+              {stats.expenses}
+            </p>
           </div>
           <div className="rounded-2xl border border-border bg-surface p-6">
             <p className="text-sm text-text-muted">Total Groups</p>
-            <p className="mt-2 text-3xl font-bold text-text-primary">{stats.groups}</p>
+            <p className="mt-2 text-3xl font-bold text-text-primary">
+              {stats.groups}
+            </p>
           </div>
           <div className="rounded-2xl border border-border bg-surface p-6">
             <p className="text-sm text-text-muted">Group Members</p>
-            <p className="mt-2 text-3xl font-bold text-text-primary">{stats.members}</p>
+            <p className="mt-2 text-3xl font-bold text-text-primary">
+              {stats.members}
+            </p>
           </div>
         </div>
 
@@ -174,11 +199,15 @@ export default function AdminDashboardPage() {
         )}
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <div className="rounded-3xl border border-border bg-surface p-6">
+          <div id="recent-users" className="scroll-mt-6 rounded-3xl border border-border bg-surface p-6">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-text-primary">Recent Users</h2>
-                <p className="text-sm text-text-muted">Latest registered accounts and activity.</p>
+                <h2 className="text-xl font-bold text-text-primary">
+                  Recent Users
+                </h2>
+                <p className="text-sm text-text-muted">
+                  Latest registered accounts and activity.
+                </p>
               </div>
               <button
                 onClick={handleRefresh}
@@ -189,7 +218,9 @@ export default function AdminDashboardPage() {
             </div>
 
             {isLoading ? (
-              <p className="py-10 text-center text-text-muted">Loading users...</p>
+              <p className="py-10 text-center text-text-muted">
+                Loading users...
+              </p>
             ) : (
               <div className="space-y-3">
                 {overview?.recentUsers.map((user) => (
@@ -217,14 +248,20 @@ export default function AdminDashboardPage() {
             )}
           </div>
 
-          <div className="rounded-3xl border border-border bg-surface p-6">
+          <div id="recent-groups" className="scroll-mt-6 rounded-3xl border border-border bg-surface p-6">
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-text-primary">Recent Groups</h2>
-              <p className="text-sm text-text-muted">Newest shared expense groups.</p>
+              <h2 className="text-xl font-bold text-text-primary">
+                Recent Groups
+              </h2>
+              <p className="text-sm text-text-muted">
+                Newest shared expense groups.
+              </p>
             </div>
 
             {isLoading ? (
-              <p className="py-10 text-center text-text-muted">Loading groups...</p>
+              <p className="py-10 text-center text-text-muted">
+                Loading groups...
+              </p>
             ) : (
               <div className="space-y-3">
                 {overview?.recentGroups.map((group) => (
@@ -234,9 +271,13 @@ export default function AdminDashboardPage() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="font-semibold text-text-primary">{group.name}</p>
+                        <p className="font-semibold text-text-primary">
+                          {group.name}
+                        </p>
                         <p className="text-xs text-text-muted">
-                          {group.owner?.name || group.owner?.email || "Unknown owner"}
+                          {group.owner?.name ||
+                            group.owner?.email ||
+                            "Unknown owner"}
                         </p>
                         <p className="mt-1 text-xs text-text-muted">
                           Created {formatDate(group.createdAt)}
@@ -254,14 +295,20 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-border bg-surface p-6">
+        <div id="recent-expenses" className="scroll-mt-6 rounded-3xl border border-border bg-surface p-6">
           <div className="mb-4">
-            <h2 className="text-xl font-bold text-text-primary">Recent Expenses</h2>
-            <p className="text-sm text-text-muted">Latest expense activity across the app.</p>
+            <h2 className="text-xl font-bold text-text-primary">
+              Recent Expenses
+            </h2>
+            <p className="text-sm text-text-muted">
+              Latest expense activity across the app.
+            </p>
           </div>
 
           {isLoading ? (
-            <p className="py-10 text-center text-text-muted">Loading expenses...</p>
+            <p className="py-10 text-center text-text-muted">
+              Loading expenses...
+            </p>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-border">
               <div className="grid grid-cols-[1.5fr_0.8fr_1fr_1fr] gap-3 border-b border-border bg-surface-muted px-4 py-3 text-xs font-semibold uppercase tracking-wide text-text-muted">
@@ -276,12 +323,18 @@ export default function AdminDashboardPage() {
                   className="grid grid-cols-[1.5fr_0.8fr_1fr_1fr] gap-3 border-b border-border px-4 py-3 last:border-b-0"
                 >
                   <div>
-                    <p className="font-semibold text-text-primary">{expense.title}</p>
-                    <p className="text-xs text-text-muted">{expense.category}</p>
-                    <p className="mt-1 text-xs text-text-muted">{formatDate(expense.createdAt)}</p>
+                    <p className="font-semibold text-text-primary">
+                      {expense.title}
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      {expense.category}
+                    </p>
+                    <p className="mt-1 text-xs text-text-muted">
+                      {formatDate(expense.createdAt)}
+                    </p>
                   </div>
                   <div className="font-semibold text-text-primary">
-                    MMK{expense.amount.toLocaleString()}
+                    MMK {expense.amount.toLocaleString()}
                   </div>
                   <div className="text-sm text-text-secondary">
                     {expense.user.name || expense.user.email}
@@ -296,7 +349,9 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="rounded-3xl border border-border bg-surface p-6">
-          <h2 className="mb-4 text-xl font-bold text-text-primary">Security Settings</h2>
+          <h2 className="mb-4 text-xl font-bold text-text-primary">
+            Security Settings
+          </h2>
 
           {!setup2FA ? (
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -313,9 +368,12 @@ export default function AdminDashboardPage() {
           ) : (
             <div className="space-y-6">
               <div className="flex flex-col items-center text-center">
-                <h3 className="mb-2 font-semibold text-text-primary">1. Scan QR Code</h3>
+                <h3 className="mb-2 font-semibold text-text-primary">
+                  1. Scan QR Code
+                </h3>
                 <p className="mb-4 text-sm text-text-secondary">
-                  Use Google Authenticator, Authy, or another authenticator app to scan this QR code.
+                  Use Google Authenticator, Authy, or another authenticator app
+                  to scan this QR code.
                 </p>
                 {otpauthUrl && (
                   <div className="mx-auto inline-flex rounded-2xl bg-white p-4 shadow-sm">
@@ -325,7 +383,9 @@ export default function AdminDashboardPage() {
               </div>
 
               <div>
-                <h3 className="mb-2 font-semibold text-text-primary">2. Manual Entry</h3>
+                <h3 className="mb-2 font-semibold text-text-primary">
+                  2. Manual Entry
+                </h3>
                 <p className="mb-2 text-sm text-text-secondary">
                   Or enter this secret manually:
                 </p>
@@ -335,7 +395,9 @@ export default function AdminDashboardPage() {
               </div>
 
               <div>
-                <h3 className="mb-2 font-semibold text-text-primary">3. Verify</h3>
+                <h3 className="mb-2 font-semibold text-text-primary">
+                  3. Verify
+                </h3>
                 <p className="mb-4 text-sm text-text-secondary">
                   Enter the 6-digit code from the app to finish setup.
                 </p>
@@ -344,7 +406,9 @@ export default function AdminDashboardPage() {
                     type="text"
                     value={verificationToken}
                     onChange={(e) =>
-                      setVerificationToken(e.target.value.replace(/\D/g, "").slice(0, 6))
+                      setVerificationToken(
+                        e.target.value.replace(/\D/g, "").slice(0, 6),
+                      )
                     }
                     className="flex-1 rounded-xl bg-surface-muted px-4 py-3 text-center font-mono text-2xl tracking-widest text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
                     placeholder="000000"
@@ -364,19 +428,50 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="rounded-3xl border border-border bg-surface p-6">
-          <h2 className="mb-4 text-xl font-bold text-text-primary">Quick Actions</h2>
+          <h2 className="mb-4 text-xl font-bold text-text-primary">
+            Quick Actions
+          </h2>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <button className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border">
-              View Users
+            <button
+              type="button"
+              onClick={() => scrollToSection("recent-users")}
+              className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border"
+            >
+              Recent Users
             </button>
-            <button className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border">
-              View Expenses
+            <button
+              type="button"
+              onClick={() => scrollToSection("recent-groups")}
+              className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border"
+            >
+              Recent Groups
             </button>
-            <button className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border">
-              System Logs
+            <button
+              type="button"
+              onClick={() => scrollToSection("recent-expenses")}
+              className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border"
+            >
+              Recent Expenses
             </button>
-            <button className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border">
-              API Settings
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border"
+              aria-label="Back to top"
+            >
+              <svg
+                className="mx-auto h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 10l7-7m0 0l7 7m-7-7v18"
+                />
+              </svg>
             </button>
           </div>
         </div>
