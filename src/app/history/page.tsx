@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
 import CategoryPieChart from "@/components/charts/CategoryPieChart";
+import LoadingState from "@/components/ui/LoadingState";
 import { useExpenseStore } from "@/store/expenseStore";
 
 type MenuState = string | null;
@@ -291,8 +292,10 @@ export default function HistoryPage() {
         </div>
 
         {isLoading && page === 1 ? (
-          <div className="rounded-3xl border border-border bg-surface p-6 text-center text-text-muted">
-            Loading...
+          <div className="rounded-3xl border border-border bg-surface p-6">
+            <div className="flex justify-center">
+              <LoadingState label="Loading records" />
+            </div>
           </div>
         ) : expenses.length === 0 ? (
           <div className="rounded-3xl border border-border bg-surface p-6 text-center">
@@ -341,7 +344,10 @@ export default function HistoryPage() {
                           {expense.title}
                         </p>
                         <p className="mt-1 text-xs text-text-muted">
-                          {expense.category} • {formatDate(expense.date)}
+                          {expense.category}
+                        </p>
+                        <p className="text-xs text-text-muted">
+                          {formatDate(expense.date)}
                         </p>
                         {expense.groupName && (
                           <div className="mt-2 inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
@@ -430,7 +436,12 @@ export default function HistoryPage() {
               className="py-2 text-center text-sm text-text-muted"
             >
               {isLoadingMore
-                ? "Loading more records..."
+                ? (
+                  <LoadingState
+                    label="Loading more records"
+                    className="justify-center"
+                  />
+                )
                 : totalExpenses > expenses.length
                   ? "Scroll for more records"
                   : "You reached the end"}

@@ -17,25 +17,27 @@ A modern frontend for the Expense Tracker application built with Next.js 16.
 ## Features
 
 ### User Features (matches mobile app)
+
 - Login/Register with email & password
 - Dashboard with monthly overview and analytics
-- Expense management (CRUD operations)
+- Expense management (MANAGEMENT operations)
 - Category-based expense tracking
 - Group management for shared expenses
 - Expense history with search and filtering
 - Profile management
 - Dark/Light/System theme support
 
-
 ## Getting Started
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Configure environment variables:**
    Create `.env.local` file:
+
    ```env
    NEXTAUTH_URL=http://localhost:3000
    NEXTAUTH_SECRET=your-secret-key-min-32-chars
@@ -44,6 +46,7 @@ A modern frontend for the Expense Tracker application built with Next.js 16.
    ```
 
 3. **Run the development server:**
+
    ```bash
    npm run dev
    ```
@@ -96,6 +99,7 @@ frontend/
 ## Theme System
 
 The app uses a custom theme matching the mobile app's design:
+
 - **Primary:** `#7C5CFA` (Purple)
 - **Accent:** `#FF7A45` (Orange)
 - **Background:** `#F6F4FB` (Light) / `#120F1D` (Dark)
@@ -105,6 +109,7 @@ Theme can be toggled via the profile page or the sun/moon icon in the header.
 ## API Integration
 
 The frontend connects to the existing Express.js backend:
+
 - All API calls go through `/api/v1` endpoints
 - JWT tokens are stored in localStorage and attached via Axios interceptors
 - Automatic token refresh on 401 errors

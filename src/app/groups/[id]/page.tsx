@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/layout/AppShell';
+import LoadingState from '@/components/ui/LoadingState';
 import { useGroupStore } from '@/store/groupStore';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'react-hot-toast';
@@ -84,7 +85,9 @@ export default function GroupDetailPage({ params }: { params: Promise<{ id: stri
   if (isLoading || !currentGroup) {
     return (
       <AppShell>
-        <div className="text-center py-8 text-text-muted">Loading...</div>
+        <div className="flex justify-center py-8">
+          <LoadingState label="Loading group" />
+        </div>
       </AppShell>
     );
   }

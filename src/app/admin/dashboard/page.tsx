@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 import CategoryPieChart from "@/components/charts/CategoryPieChart";
 import MonthlyChart from "@/components/charts/MonthlyChart";
 import UserExpenseBarChart from "@/components/admin/UserExpenseBarChart";
+import LoadingState from "@/components/ui/LoadingState";
 import { generateAdminSecret, verifyAdminToken } from "@/lib/admin-2fa";
 import { adminAPI } from "@/lib/admin-api";
 import { useThemeStore } from "@/store/themeStore";
@@ -154,6 +155,8 @@ export default function AdminDashboardPage() {
   const [usersPage, setUsersPage] = useState(1);
   const [groupsPage, setGroupsPage] = useState(1);
   const [expensesPage, setExpensesPage] = useState(1);
+  const [showMobileHeaderActions, setShowMobileHeaderActions] =
+    useState(false);
   const [userForm, setUserForm] = useState<UserFormState>(emptyUserForm);
   const [groupForm, setGroupForm] = useState<GroupFormState>(emptyGroupForm);
   const [expenseForm, setExpenseForm] =
@@ -556,9 +559,9 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-surface/95 text-text-primary backdrop-blur">
-        <div className="mx-auto flex max-w-[1700px] items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white shadow-lg shadow-primary/25">
+        <div className="relative mx-auto flex max-w-[1700px] items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:py-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-white shadow-lg shadow-primary/25">
               <svg
                 className="h-6 w-6"
                 fill="none"
@@ -573,74 +576,232 @@ export default function AdminDashboardPage() {
                 />
               </svg>
             </div>
-            <div>
-              <h1 className="text-xl font-bold">Dashboard</h1>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleRefresh}
-                  className="rounded-xl border border-border bg-surface-muted px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-border"
-                >
-                  {isRefreshing ? "Refreshing..." : "Refresh"}
-                </button>
-                <button
-                  onClick={() => router.push("/")}
-                  className="rounded-xl border border-border bg-surface-muted px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-border"
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setTheme(effectiveTheme === "dark" ? "light" : "dark")
-                  }
-                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-muted px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-border"
-                  aria-label="Toggle theme"
-                >
-                  {effectiveTheme === "dark" ? (
-                    <>
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                        />
-                      </svg>
-                      Light
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                        />
-                      </svg>
-                      Dark
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
-                >
-                  Logout
-                </button>
-              </div>{" "}
+            <div className="min-w-0">
+              <h1 className="truncate text-xl font-bold sm:text-2xl">
+                Admin Dashboard
+              </h1>
+              <p className="mt-1 text-xs text-text-muted sm:text-sm">
+                Overview, analytics, and admin tools at a glance.
+              </p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              setShowMobileHeaderActions((current) => !current)
+            }
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-muted text-text-primary transition-colors hover:bg-border md:hidden"
+            aria-label={
+              showMobileHeaderActions
+                ? "Collapse header actions"
+                : "Expand header actions"
+            }
+            aria-expanded={showMobileHeaderActions}
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+
+          <div className="hidden items-center gap-2 md:flex md:flex-wrap md:justify-end">
+            <button
+              onClick={handleRefresh}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface-muted px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-border"
+            >
+              {isRefreshing ? "Refreshing..." : "Refresh"}
+            </button>
+            <button
+              onClick={() => router.push("/")}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface-muted px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-border"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setTheme(effectiveTheme === "dark" ? "light" : "dark")
+              }
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface-muted px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-border"
+              aria-label="Toggle theme"
+            >
+              {effectiveTheme === "dark" ? (
+                <>
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                    />
+                  </svg>
+                  Light
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                    />
+                  </svg>
+                  Dark
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
+            >
+              Logout
+            </button>
+          </div>
+
+          {showMobileHeaderActions && (
+            <div className="absolute left-4 right-4 top-full z-50 mt-2 rounded-2xl border border-border bg-surface p-2 shadow-2xl shadow-black/10 md:hidden">
+              <button
+                onClick={() => {
+                  setShowMobileHeaderActions(false);
+                  handleRefresh();
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-text-primary transition-colors hover:bg-surface-muted"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8 8 0 004.582 9m0 0H9m11 11v-5h-.581m0 0A8.001 8.001 0 0119.418 15m0 0H15"
+                  />
+                </svg>
+                {isRefreshing ? "Refreshing..." : "Refresh"}
+              </button>
+              <button
+                onClick={() => {
+                  setShowMobileHeaderActions(false);
+                  router.push("/");
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-text-primary transition-colors hover:bg-surface-muted"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMobileHeaderActions(false);
+                  setTheme(effectiveTheme === "dark" ? "light" : "dark");
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-text-primary transition-colors hover:bg-surface-muted"
+                aria-label="Toggle theme"
+              >
+                {effectiveTheme === "dark" ? (
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                    />
+                  </svg>
+                )}
+                {effectiveTheme === "dark" ? "Light" : "Dark"}
+              </button>
+              <button
+                onClick={() => {
+                  setShowMobileHeaderActions(false);
+                  handleLogout();
+                }}
+                className="flex w-full items-center gap-3 rounded-xl bg-primary px-3 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-dark"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -707,9 +868,9 @@ export default function AdminDashboardPage() {
             </div>
 
             {isLoading ? (
-              <p className="py-10 text-center text-text-muted">
-                Loading users...
-              </p>
+              <div className="flex justify-center py-10">
+                <LoadingState label="Loading users" />
+              </div>
             ) : (
               <div className="space-y-3">
                 {overview?.recentUsers.map((user) => (
@@ -751,9 +912,9 @@ export default function AdminDashboardPage() {
             </div>
 
             {isLoading ? (
-              <p className="py-10 text-center text-text-muted">
-                Loading groups...
-              </p>
+              <div className="flex justify-center py-10">
+                <LoadingState label="Loading groups" />
+              </div>
             ) : (
               <div className="space-y-3">
                 {overview?.recentGroups.map((group) => (
@@ -801,9 +962,9 @@ export default function AdminDashboardPage() {
           </div>
 
           {isLoading ? (
-            <p className="py-10 text-center text-text-muted">
-              Loading expenses...
-            </p>
+            <div className="flex justify-center py-10">
+              <LoadingState label="Loading expenses" />
+            </div>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-border">
               <div className="grid grid-cols-[1.5fr_0.8fr_1fr_1fr] gap-3 border-b border-border bg-surface-muted px-4 py-3 text-xs font-semibold uppercase tracking-wide text-text-muted">
@@ -866,9 +1027,9 @@ export default function AdminDashboardPage() {
           </div>
 
           {isLoading ? (
-            <p className="py-10 text-center text-text-muted">
-              Loading analytics...
-            </p>
+            <div className="flex justify-center py-10">
+              <LoadingState label="Loading analytics" />
+            </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
               <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -888,13 +1049,13 @@ export default function AdminDashboardPage() {
         </div>
 
         <div
-          id="users-crud"
+          id="users-MANAGEMENT"
           className="scroll-mt-6 rounded-3xl border border-border bg-surface p-6"
         >
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-bold text-text-primary">
-                Users CRUD
+                Users Management
               </h2>
               <p className="text-sm text-text-muted">
                 Create, update, and remove users.
@@ -1023,7 +1184,7 @@ export default function AdminDashboardPage() {
                         name: user.name || "",
                         password: "",
                       });
-                      scrollToSection("users-crud");
+                      scrollToSection("users-management");
                     }}
                     className="rounded-lg border border-border bg-surface-muted px-3 py-1.5 text-xs font-semibold text-text-primary"
                   >
@@ -1052,13 +1213,13 @@ export default function AdminDashboardPage() {
         </div>
 
         <div
-          id="groups-crud"
+          id="groups-management"
           className="scroll-mt-6 rounded-3xl border border-border bg-surface p-6"
         >
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-bold text-text-primary">
-                Groups CRUD
+                Groups Management
               </h2>
               <p className="text-sm text-text-muted">
                 Create groups and rename existing ones.
@@ -1175,7 +1336,7 @@ export default function AdminDashboardPage() {
                         name: group.name,
                         ownerId: group.owner.id,
                       });
-                      scrollToSection("groups-crud");
+                      scrollToSection("groups-management");
                     }}
                     className="rounded-lg border border-border bg-surface-muted px-3 py-1.5 text-xs font-semibold text-text-primary"
                   >
@@ -1204,13 +1365,13 @@ export default function AdminDashboardPage() {
         </div>
 
         <div
-          id="expenses-crud"
+          id="expenses-management"
           className="scroll-mt-6 rounded-3xl border border-border bg-surface p-6"
         >
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-bold text-text-primary">
-                Expenses CRUD
+                Expenses Management
               </h2>
               <p className="text-sm text-text-muted">
                 Create, edit, and delete all expenses.
@@ -1396,7 +1557,7 @@ export default function AdminDashboardPage() {
                         date: new Date(expense.date).toISOString().slice(0, 10),
                         note: expense.note || "",
                       });
-                      scrollToSection("expenses-crud");
+                      scrollToSection("expenses-management");
                     }}
                     className="rounded-lg border border-border bg-surface-muted px-3 py-1.5 text-xs font-semibold text-text-primary"
                   >
@@ -1583,21 +1744,21 @@ export default function AdminDashboardPage() {
           <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
             <button
               type="button"
-              onClick={() => scrollToSection("users-crud")}
+              onClick={() => scrollToSection("users-management")}
               className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border"
             >
               Users
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection("groups-crud")}
+              onClick={() => scrollToSection("groups-management")}
               className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border"
             >
               Groups
             </button>
             <button
               type="button"
-              onClick={() => scrollToSection("expenses-crud")}
+              onClick={() => scrollToSection("expenses-management")}
               className="rounded-xl bg-surface-muted p-4 font-medium text-text-primary transition-colors hover:bg-border"
             >
               Expenses

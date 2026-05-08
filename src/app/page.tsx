@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/layout/AppShell';
 import DashboardContent from '@/components/expenses/DashboardContent';
+import LoadingState from '@/components/ui/LoadingState';
 import { useAuthStore } from '@/store/authStore';
 
 export default function HomePage() {
@@ -20,7 +21,9 @@ export default function HomePage() {
   if (!hasHydrated) {
     return (
       <AppShell>
-        <div className="text-center py-8 text-text-muted">Loading...</div>
+        <div className="flex justify-center py-8">
+          <LoadingState label="Loading" />
+        </div>
       </AppShell>
     );
   }

@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/layout/AppShell';
+import LoadingState from '@/components/ui/LoadingState';
 import { useExpenseStore } from '@/store/expenseStore';
 import { CATEGORIES } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
@@ -63,7 +64,9 @@ export default function EditExpensePage({ params }: { params: Promise<{ id: stri
   if (loading) {
     return (
       <AppShell>
-        <div className="text-center py-8 text-text-muted">Loading...</div>
+        <div className="flex justify-center py-8">
+          <LoadingState label="Loading expense" />
+        </div>
       </AppShell>
     );
   }

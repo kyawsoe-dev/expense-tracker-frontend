@@ -29,8 +29,12 @@ export default function DashboardContent() {
   );
   const [isRefreshingForecast, setIsRefreshingForecast] = useState(false);
 
-  const [selectedYear, selectedMonth] = selectedOverviewPeriod.split("-").map(Number);
-  const selectedAnalyticsYear = Number(selectedAnalyticsPeriod.split("-")[0] || today.getFullYear());
+  const [selectedYear, selectedMonth] = selectedOverviewPeriod
+    .split("-")
+    .map(Number);
+  const selectedAnalyticsYear = Number(
+    selectedAnalyticsPeriod.split("-")[0] || today.getFullYear(),
+  );
 
   const forecastPredictions = useMemo(() => {
     const categories = (currentAnalytics?.byCategory ?? []).slice(0, 4);
@@ -39,8 +43,14 @@ export default function DashboardContent() {
     }
 
     return categories.map((item, index) => {
-      const trend = index === 0 || index === 1 ? "increasing" : index === categories.length - 1 ? "decreasing" : "stable";
-      const multiplier = trend === "increasing" ? 1.12 : trend === "decreasing" ? 0.94 : 1.01;
+      const trend =
+        index === 0 || index === 1
+          ? "increasing"
+          : index === categories.length - 1
+            ? "decreasing"
+            : "stable";
+      const multiplier =
+        trend === "increasing" ? 1.12 : trend === "decreasing" ? 0.94 : 1.01;
 
       return {
         category: item.category,
@@ -51,11 +61,16 @@ export default function DashboardContent() {
   }, [currentAnalytics]);
 
   const totalPredicted = useMemo(
-    () => forecastPredictions.reduce((sum, item) => sum + item.predictedAmount, 0),
+    () =>
+      forecastPredictions.reduce((sum, item) => sum + item.predictedAmount, 0),
     [forecastPredictions],
   );
-  const increasingCount = forecastPredictions.filter((item) => item.trend === "increasing").length;
-  const decreasingCount = forecastPredictions.filter((item) => item.trend === "decreasing").length;
+  const increasingCount = forecastPredictions.filter(
+    (item) => item.trend === "increasing",
+  ).length;
+  const decreasingCount = forecastPredictions.filter(
+    (item) => item.trend === "decreasing",
+  ).length;
 
   const greeting = () => {
     const hour = new Date().getHours();
@@ -66,13 +81,20 @@ export default function DashboardContent() {
 
   const getCategoryIcon = (category: string) => {
     const normalized = category.toLowerCase();
-    if (normalized.includes("food") || normalized.includes("restaurant") || normalized.includes("grocery")) return "🍽";
-    if (normalized.includes("transport") || normalized.includes("travel")) return "🚗";
+    if (
+      normalized.includes("food") ||
+      normalized.includes("restaurant") ||
+      normalized.includes("grocery")
+    )
+      return "🍽";
+    if (normalized.includes("transport") || normalized.includes("travel"))
+      return "🚗";
     if (normalized.includes("shopping")) return "🛍";
     if (normalized.includes("health")) return "💊";
     if (normalized.includes("education")) return "📚";
     if (normalized.includes("entertainment")) return "🎬";
-    if (normalized.includes("bills") || normalized.includes("utility")) return "🧾";
+    if (normalized.includes("bills") || normalized.includes("utility"))
+      return "🧾";
     return "📦";
   };
 
@@ -275,13 +297,21 @@ export default function DashboardContent() {
             <div className="rounded-2xl bg-surface-muted p-4">
               <p className="text-text-muted text-xs">Year total</p>
               <p className="mt-2 text-xl font-bold text-text-primary">
-                {formatAmount(Number(safeCurrentAnalytics?.total ?? safeCurrentSummary?.total ?? 0))}
+                {formatAmount(
+                  Number(
+                    safeCurrentAnalytics?.total ??
+                      safeCurrentSummary?.total ??
+                      0,
+                  ),
+                )}
               </p>
             </div>
             <div className="rounded-2xl bg-surface-muted p-4">
               <p className="text-text-muted text-xs">Top category</p>
               <p className="mt-2 text-xl font-bold text-text-primary">
-                {safeCurrentAnalytics?.topCategory || safeCurrentSummary?.topCategory || "None"}
+                {safeCurrentAnalytics?.topCategory ||
+                  safeCurrentSummary?.topCategory ||
+                  "None"}
               </p>
             </div>
           </div>
@@ -291,7 +321,9 @@ export default function DashboardContent() {
               <MonthlyChart data={safeCurrentAnalytics.monthly ?? []} />
             </div>
           ) : (
-            <p className="text-text-muted text-sm">No yearly analytics available yet.</p>
+            <p className="text-text-muted text-sm">
+              No yearly analytics available yet.
+            </p>
           )}
         </div>
       </div>
@@ -335,7 +367,7 @@ export default function DashboardContent() {
             <div className="rounded-2xl border border-border bg-surface-muted p-4">
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <p className="text-text-primary font-bold text-lg">
+                  <p className="whitespace-nowrap text-success font-bold text-lg">
                     {formatAmount(totalPredicted)}
                   </p>
                   <p className="text-text-muted text-xs mt-1">Total Est.</p>
@@ -386,7 +418,7 @@ export default function DashboardContent() {
                         {trendLabel}
                       </p>
                     </div>
-                    <p className="text-text-primary font-bold whitespace-nowrap">
+                    <p className="text-success font-semibold">
                       {formatAmount(prediction.predictedAmount)}
                     </p>
                   </div>
@@ -450,12 +482,15 @@ export default function DashboardContent() {
                     <p className="text-text-primary font-medium">
                       {expense.title}
                     </p>
+                    <p className="mt-1 text-text-muted text-xs">
+                      {expense.category}
+                    </p>
                     <p className="text-text-muted text-xs">
-                      {expense.category} • Created {formatCreatedAt(expense.createdAt)}
+                      Created {formatCreatedAt(expense.createdAt)}
                     </p>
                   </div>
                 </div>
-                <p className="text-text-primary font-semibold">
+                <p className="text-success font-semibold">
                   {formatAmount(expense.amount)}
                 </p>
               </div>

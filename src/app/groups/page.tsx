@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AppShell from '@/components/layout/AppShell';
+import LoadingState from '@/components/ui/LoadingState';
 import { useGroupStore } from '@/store/groupStore';
 import { ExpenseGroup, GroupMemberSuggestion } from '@/types';
 import { toast } from 'react-hot-toast';
@@ -105,7 +106,9 @@ export default function GroupsPage() {
         {/* Groups List */}
         <div className="space-y-3">
           {isLoading ? (
-            <div className="text-center py-8 text-text-muted">Loading...</div>
+            <div className="flex justify-center py-8">
+              <LoadingState label="Loading groups" />
+            </div>
           ) : groups.length === 0 ? (
             <div className="text-center py-12 bg-surface rounded-3xl border border-border">
               <p className="text-text-muted text-lg mb-2">No groups yet</p>
