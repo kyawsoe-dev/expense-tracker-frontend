@@ -1530,6 +1530,11 @@ export default function AdminDashboardPage() {
                     {expense.title}
                   </p>
                   <p className="text-xs text-text-muted">{expense.category}</p>
+                  {expense.note && expense.note.trim().length > 0 && (
+                    <p className="mt-1 truncate text-xs text-text-secondary">
+                      {expense.note}
+                    </p>
+                  )}
                 </div>
                 <p className="text-sm font-semibold text-text-primary">
                   {formatAmount(expense.amount)}
